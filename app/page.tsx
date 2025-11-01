@@ -3,27 +3,35 @@
 import { useState } from "react";
 
 export default function Home() {
-  const quotes = [
-    "The best way to get started is to quit talking and begin doing. – Walt Disney",
-    "Don’t let yesterday take up too much of today. – Will Rogers",
-    "It’s not whether you get knocked down, it’s whether you get up. – Vince Lombardi",
-    "If you are working on something exciting, it will keep you motivated. – Steve Jobs",
-    "Success is not in what you have, but who you are. – Bo Bennett",
-    "Your time is limited, so don’t waste it living someone else’s life. – Steve Jobs",
-  ];
+  const [quote, setQuote] = useState("");
+  const [author, setAuthor] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Declare a state variable called "quote" and a function "setQuote" to update it.
-  // Initialize it with the first item from the "quotes" array.
-  const [quote, setQuote] = useState(quotes[0]);
+  // Fetch quote from API Ninjas
+  const fetchQuote = async () => {
+    setLoading(true);
+    setError("");
 
-  // Define a function that selects a random quote from the list.
-  const generateQuote = () => {
-    // Generate a random index number between 0 and (quotes.length - 1)
-    const randomIndex = Math.floor(Math.random() * quotes.length);
+    try {
+      const res = await fetch("/api");
 
-    // Update the "quote" state with the randomly selected quote.
-    // This automatically triggers a re-render, showing the new quote in the UI.
-    setQuote(quotes[randomIndex]);
+      if (!res.ok) throw new Error(`API error: ${res.status}`);
+
+      const data = await res.json();
+
+      if (data.length > 0) {
+        setQuote(data[0].quote);
+        setAuthor(data[0].author);
+      } else {
+        setError("No quote found.");
+      }
+    } catch (err) {
+      setError("Failed to fetch quote.");
+      console.error(err);
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -32,14 +40,35 @@ export default function Home() {
         <h1 className="text-4xl font-bold text-black dark:text-white mb-8">
           Quote Generator
         </h1>
-        <p className="text-xl text-zinc-700 dark:text-zinc-300 italic mb-10 transition-all duration-300">
-          “{quote}”
-        </p>
+
+        {error && (
+          <p className="text-red-500 mb-4">{error}</p>
+        )}
+
+        {loading ? (
+          <p className="text-lg text-zinc-500 italic mb-10">Loading...</p>
+        ) : quote ? (
+          <p className="text-xl text-zinc-700 dark:text-zinc-300 italic mb-2 transition-all duration-300">
+            “{quote}”
+          </p>
+        ) : (
+          <p className="text-lg text-zinc-500 italic mb-10">
+            Click the button to get a quote!
+          </p>
+        )}
+
+        {author && (
+          <p className="text-md text-zinc-600 dark:text-zinc-400 mb-10">
+            — {author}
+          </p>
+        )}
+
         <button
-          onClick={generateQuote}
-          className="rounded-full bg-black text-white dark:bg-white dark:text-black px-6 py-3 text-lg font-medium hover:opacity-80 transition-all"
+          onClick={fetchQuote}
+          disabled={loading}
+          className="rounded-full bg-black text-white dark:bg-white dark:text-black px-6 py-3 text-lg font-medium hover:opacity-80 transition-all disabled:opacity-50"
         >
-          New Quote
+          {loading ? "Fetching..." : "New Quote"}
         </button>
       </main>
     </div>
