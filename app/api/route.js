@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
     try {
-        const res = await fetch("https://api.api-ninjas.com/v2/quotes?categories=success,wisdom", {
+        const res = await fetch("https://api.api-ninjas.com/v2/randomquotes?categories=success,wisdom", {
             headers: {
                 "X-Api-Key": process.env.API_NINJAS_KEY,
             },
